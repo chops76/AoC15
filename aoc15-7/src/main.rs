@@ -56,6 +56,8 @@ fn get_params(param1: &String, param2: &String, p1val: &mut u16, p2val: &mut u16
 }
 
 fn main() {
+    let part2 = true;
+
     let stdin = io::stdin();
 
     let mut values = HashMap::<String, u16>::new();
@@ -66,6 +68,9 @@ fn main() {
         insert_gate(ln, &mut gates);
     }
 
+    if part2 {
+        values.insert("b".to_string(), 46065);
+    }
     let mut found = false;
     while !found {
         for (output, gatecmd) in &gates {
