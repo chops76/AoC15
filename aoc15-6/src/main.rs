@@ -14,7 +14,9 @@ fn points(pointstr: &str)->(u32, u32) {
 fn main() {
     let stdin = io::stdin();
 
-    let mut grid: [[bool; 1000]; 1000] = [[false; 1000];1000];
+    let mut grid = vec![vec![false; 1000];1000];
+    let mut grid2 = vec![vec![0; 1000]; 1000];
+
     for line in stdin.lock().lines() {
         let ln = line.unwrap();
         let split = ln.split(' ');
@@ -55,19 +57,29 @@ fn main() {
             for j in y_min..y_max+1 {
                 if toggle {
                     grid[i][j] = !grid[i][j];
+                    grid2[i][j] += 2;
+                } else if new_state {
+                    grid[i][j] = true;
+                    grid2[i][j] += 1;
                 } else {
-                    grid[i][j] = new_state;
+                    grid[i][j] = false;
+                    if grid2[i][j] != 0 {
+                        grid2[i][j] -= 1;
+                    }
                 }
             }
         }
     }
     let mut count = 0;
+    let mut brightness = 0;
     for i in 0..1000 {
         for j in 0..1000 {
             if grid[i][j] {
                 count += 1;
             }
+            brightness += grid2[i][j];
         }
     }
-    println!("Total number of on: {}", count);
+    println!("Total number on (Part 1): {}", count);
+    println!("Total brightness (Part 2): {}", brightness);
 }
