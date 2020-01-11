@@ -27,10 +27,38 @@ fn insert_gate(gatestr: String, hm: &mut HashMap<String, Gate>)
     }
 }
 
+fn get_params(param1: &String, param2: &String, p1val: &mut u16, p2val: &mut u16,
+    values: &HashMap<String, u16>) -> bool {
+    let parsed1 = param1.parse::<u16>();
+    if parsed1.is_err() {
+        if values.contains_key(param1) {
+            *p1val = values[param1];
+        } else {
+            return false;
+        }
+    } else {
+        *p1val = parsed1.unwrap();
+    }
+    if param2 == "N/A" {
+        return true;
+    }
+    let parsed2 = param2.parse::<u16>();
+    if parsed2.is_err() {
+        if values.contains_key(param2) {
+            *p2val = values[param2];
+        } else {
+            return false;
+        }
+    } else {
+        *p2val = parsed2.unwrap();
+    }
+    true
+}
+
 fn main() {
     let stdin = io::stdin();
 
-    let mut values = HashMap::<String, i32>::new();
+    let mut values = HashMap::<String, u16>::new();
     let mut gates = HashMap::new();
 
     for line in stdin.lock().lines() {
@@ -38,22 +66,37 @@ fn main() {
         insert_gate(ln, &mut gates);
     }
 
-    loop {
+    let mut found = false;
+    while !found {
         for (output, gatecmd) in &gates {
             if !values.contains_key(output) {
-                if gatecmd.gate == "eq" {
-                    let my_int = gatecmd.inp1.parse::<i32>();
-                    if my_int.is_err() {
-                        if values.contains_key(&gatecmd.inp1) {
-                            values.insert(output.to_string(), values[&gatecmd.inp1]);
-                            println!("eq, indirect");
-                        }
-                    } else {
-                        values.insert(output.to_string(), my_int.unwrap());
-                        println!("{}: {}({}, {})", output, gatecmd.gate, gatecmd.inp1, gatecmd.inp2);
+                let mut val1:u16 = 0;
+                let mut val2:u16 = 0;
+                if get_params(&gatecmd.inp1, &gatecmd.inp2, &mut val1, &mut val2, &values) {
+                    if gatecmd.gate == "eq" {
+                        values.insert(output.to_string(), val1);
+                    } else if gatecmd.gate == "LSHIFT" {
+                        let answer = val1 << val2;
+                        values.insert(output.to_string(), answer);
+                    } else if gatecmd.gate == "RSHIFT" {
+                        let answer = val1 >> val2;
+                        values.insert(output.to_string(), answer);
+                    } else if gatecmd.gate == "NOT" {
+                        let answer = !val1;
+                        values.insert(output.to_string(), answer);
+                    } else if gatecmd.gate == "OR" {
+                        let answer = val1 | val2;
+                        values.insert(output.to_string(), answer);
+                    } else if gatecmd.gate == "AND" {
+                        let answer = val1 & val2;
+                        values.insert(output.to_string(), answer);
+                    }
+                    if output == "a" {
+                        println!("Found a: {}", values[output]);
+                        found = true;
+                        break;
                     }
                 }
-                //println!("{}: {}({}, {})", output, gatecmd.gate, gatecmd.inp1, gatecmd.inp2);
             }
         }
     }
